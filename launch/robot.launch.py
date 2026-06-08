@@ -5,7 +5,7 @@ from launch.conditions import IfCondition
 from ament_index_python.packages import get_package_share_directory
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction, AppendEnvironmentVariable
 
 def generate_launch_description():
 
@@ -17,7 +17,7 @@ def generate_launch_description():
     rviz = LaunchConfiguration('rviz')
 
     # Path to default world 
-    world_path = os.path.join(get_package_share_directory(package_name),'worlds', 'obstacles.world')
+    world_path = os.path.join(get_package_share_directory(package_name),'worlds', 'office.world')
 
     # Launch Arguments
     declare_world = DeclareLaunchArgument(
@@ -56,6 +56,8 @@ def generate_launch_description():
                         executable='create',
                         arguments=['-topic', 'robot_description',
                                    '-name', 'diff_bot',
+                                   '-x', '-2.0',
+                                   '-y', '1.0',
                                    '-z', '0.2'],
                         output='screen'
     )
@@ -68,7 +70,9 @@ def generate_launch_description():
         arguments=[
             '--ros-args',
             '-p',
-            f'config_file:={bridge_params}',]
+            f'config_file:={bridge_params}',
+            '-p',
+            'use_sim_time:=true']
     )
     
     # Launch Rviz with diff bot rviz file
@@ -79,6 +83,7 @@ def generate_launch_description():
                     package='rviz2',
                     executable='rviz2',
                     arguments=['-d', rviz_config_file],
+                    parameters=[{'use_sim_time': True}],
                     output='screen',)]
     )
 
@@ -87,6 +92,12 @@ def generate_launch_description():
         # Declare launch arguments
         declare_rviz,
         declare_world,
+
+        # Set Gazebo resource path to include classic models and the new collection
+        AppendEnvironmentVariable(
+            name='GZ_SIM_RESOURCE_PATH',
+            value=f"{os.path.join(os.path.expanduser('~'), '.gazebo', 'models')}:{os.path.join(os.path.expanduser('~'), '.gazebo', 'gazebo_models_worlds_collection', 'models')}"
+        ),
 
         # Launch the nodes
         rviz2,

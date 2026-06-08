@@ -7,8 +7,15 @@
     
     <!-- Base link -->
 
-    <link name="base_link">
+    <link name="base_footprint"/>
 
+    <joint name="base_footprint_joint" type="fixed">
+        <parent link="base_footprint"/>
+        <child link="base_link"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <link name="base_link">
     </link>
 
     <!-- Chassis link -->
@@ -177,4 +184,41 @@
     </joint>
 
     <link name="imu_link" />
+
+    <!-- Camera Sensor -->
+    <joint name="camera_joint" type="fixed">
+        <parent link="chassis"/>
+        <child link="camera_link"/>
+        <origin xyz="0.28 0 0.08" rpy="0 0 0"/>
+    </joint>
+
+    <link name="camera_link">
+        <visual>
+            <origin xyz="0 0 0"/>
+            <geometry>
+                <box size="0.015 0.08 0.022"/>
+            </geometry>
+            <material name="camera_material">
+                <color rgba="0.1 0.1 0.1 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0"/>
+            <geometry>
+                <box size="0.015 0.08 0.022"/>
+            </geometry>
+        </collision>
+        <xacro:inertial_box mass="0.1" x="0.1" y="0.1" z="0.1">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </xacro:inertial_box>
+    </link>
+
+    <joint name="camera_optical_joint" type="fixed">
+        <parent link="camera_link"/>
+        <child link="camera_link_optical"/>
+        <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+    </joint>
+
+    <link name="camera_link_optical"></link>
+
 </robot>

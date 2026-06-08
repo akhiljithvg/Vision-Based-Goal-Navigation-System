@@ -129,6 +129,32 @@
       <pose>5.41455 1.43866 -0 0 -0 -0</pose>
     </include>
 
+    <include>
+      <uri>
+      https://fuel.gazebosim.org/1.0/OpenRobotics/models/Construction Cone
+      </uri>
+      <name>Construction Cone_Behind</name>
+      <pose>-2.0 0.0 -0 0 -0 -0</pose>
+    </include>
+
+    <!-- The requested Chair -->
+    <include>
+      <uri>
+      https://fuel.gazebosim.org/1.0/OpenRobotics/models/Chair
+      </uri>
+      <name>chair</name>
+      <pose>3.0 0.0 0 0 0 0</pose>
+    </include>
+
+    <!-- A standing person model -->
+    <include>
+      <uri>
+      https://fuel.gazebosim.org/1.0/OpenRobotics/models/Standing person
+      </uri>
+      <name>person</name>
+      <pose>3.0 1.5 0.0 0 0 0</pose>
+    </include>
+
     <light name='sun' type='directional'>
       <pose>0 0 10 0 -0 0</pose>
       <cast_shadows>true</cast_shadows>

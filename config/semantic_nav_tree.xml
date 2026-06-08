@@ -1,0 +1,34 @@
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="6" name="NavigateRecovery">
+      <Fallback name="SemanticFallback">
+        
+        <!-- BRANCH 1: User Command Execution (Chair) -->
+        <Sequence name="GoToChair">
+          <CheckCommandCondition target_object="chair"/> 
+          <GetObjectPoseAction object_name="chair" goal_pose="{goal}"/>
+          <NavigateToPose goal="{goal}" behavior_tree=""/>
+        </Sequence>
+
+        <!-- BRANCH 2: User Command Execution (Person) -->
+        <Sequence name="GoToPerson">
+          <CheckCommandCondition target_object="person"/> 
+          <GetObjectPoseAction object_name="person" goal_pose="{goal}"/>
+          <NavigateToPose goal="{goal}" behavior_tree=""/>
+        </Sequence>
+
+        <!-- BRANCH 2: Default Patrol/Exploration -->
+        <!-- In this demo, if no command is active, the robot just waits/spins or we can supply a default pose -->
+        <Sequence name="Patrol">
+          <Wait wait_duration="2.0"/>
+          <Spin spin_dist="1.57"/>
+        </Sequence>
+
+      </Fallback>
+      
+      <ReactiveFallback name="RecoveryFallback">
+        <Wait wait_duration="3"/>
+      </ReactiveFallback>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

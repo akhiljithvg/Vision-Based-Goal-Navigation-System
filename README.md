@@ -1,157 +1,135 @@
-# Simulated Robots Package
+# Vision-Based Goal Navigation System
 
-Simulation for differential drive robots using ROS2 Jazzy and Gazebo Harmonic. This package provides all of the necessary files to get a simulated robot up and running. This includes the urdf, parameters and launch files for a robot with a lidar sensor and tele-operated navigation. More sensors and functionalities will be added in future.
+Welcome! This is a complete ROS 2 (Jazzy) autonomous navigation project featuring a differential drive robot simulated in Gazebo. The robot uses **Nav2**, **SLAM Toolbox**, and a **YOLOv8** perception pipeline to explore a room, map objects (like "chair", "table"), and autonomously navigate to them.
 
-## Branches
+This guide is written specifically for **beginners** to help you run the project from scratch without missing any steps!
 
-This repository has two main branches:
+---
 
-- **`main`**: Base repository with core robot simulation functionality including URDF, Gazebo simulation, and basic tele-operation
-- **`mapping`**: Extended branch that adds mapping capabilities using SLAM Toolbox and robot localization with Extended Kalman Filter (EKF)
+## 🛠️ 1. Prerequisites
 
-## Work in progress
+Before starting, make sure you have a computer running **Ubuntu 24.04** with **ROS 2 Jazzy** installed.
 
-The package is still being worked on and in development
-
-## Supported on
-
-Supported for [Ubuntu 24.04](https://releases.ubuntu.com/noble/) & [ROS2 Jazzy](https://docs.ros.org/en/jazzy/Installation.html) but compatibility with other versions has not been checked.
-
-## Install Required ROS 2 Packages
-
-### Base Packages (Required for all branches)
-
-Make sure to install the following ROS 2 Jazzy Packages:
+### Install Required Dependencies
+Open a terminal and run the following commands to install the necessary packages:
 
 ```bash
-sudo apt install -y                         \
-   ros-jazzy-ros-gz                        \
-   ros-jazzy-ros-gz-bridge                 \
-   ros-jazzy-joint-state-publisher         \
-   ros-jazzy-xacro                         \
-   ros-jazzy-teleop-twist-keyboard         \
-   ros-jazzy-teleop-twist-joy 
+# Update your package list
+sudo apt update
+
+# Install ROS 2 Navigation, SLAM, and Gazebo integration packages
+sudo apt install ros-jazzy-nav2-bringup ros-jazzy-slam-toolbox ros-jazzy-ros-gz -y
+
+# Install Python packages required for the YOLOv8 object detection
+pip3 install ultralytics
 ```
 
-### Additional Packages (Required for `mapping` branch)
+---
 
-If you're using the `mapping` branch, also install:
+## 📥 2. Setting up the Workspace
+
+In ROS 2, your code lives inside a "Workspace". Let's create one and clone the required files.
+
+### Step 2.1: Create the Workspace
+```bash
+# Create a folder for your workspace named 'ak_ws', and a 'src' folder inside it
+mkdir -p ~/ak_ws/src
+
+# Navigate into the src folder
+cd ~/ak_ws/src
+```
+
+### Step 2.2: Download the Code
+Clone this repository into the `src` folder. *(If you already have the `diff_drive_robot` folder in `src`, you can skip this step).*
+```bash
+git clone https://github.com/akhiljithvg/Vision-Based-Goal-Navigation-System.git diff_drive_robot
+```
+
+### Step 2.3: Download the Gazebo 3D Models
+The `office.world` environment requires a specific collection of 3D models.
+```bash
+# Create the hidden .gazebo directory
+mkdir -p ~/.gazebo
+
+# Clone the required models collection
+cd ~/.gazebo
+git clone https://github.com/mlherd/gazebo_models_worlds_collection.git
+```
+
+---
+
+## 🚀 3. Building the Project
+
+Before ROS 2 can run the code, it must be compiled (built) using a tool called `colcon`.
 
 ```bash
-sudo apt install -y                         \
-   ros-jazzy-slam-toolbox                  \
-   ros-jazzy-robot-localization
+# Navigate back to the root of your workspace
+cd ~/ak_ws
+
+# Install any missing ROS dependencies automatically
+rosdep update
+rosdep install --from-paths src --ignore-src -r -y
+
+# Build the workspace
+colcon build --symlink-install --packages-select diff_drive_robot
 ```
+> **Tip:** The `--symlink-install` flag means if you edit Python scripts later, you won't have to rebuild the project every time!
 
-## Install
+---
 
-To use this package please download all of the necessary dependencies first and then follow these steps:
+## 💻 4. Running the Simulation
 
-### Main Branch
+Running the full project requires opening **two separate terminal windows**.
 
-For the base robot simulation, clone the main branch:
+### Terminal 1: Launch the Simulation & Robot Brain
+This terminal will start the Gazebo 3D world, RViz (for viewing the robot's map), the YOLO camera, and the Nav2 path planners.
 
 ```bash
-mkdir -p ros2_ws/src
-cd ros2_ws/src
-git clone https://github.com/adoodevv/diff_drive_robot.git
-cd ..
-colcon build --packages-select diff_drive_robot --symlink-install
+# 1. Open a new terminal
+# 2. Source the main ROS 2 installation
+source /opt/ros/jazzy/setup.bash
+
+# 3. Source YOUR built workspace
+source ~/ak_ws/install/setup.bash
+
+# 4. Launch everything!
+ros2 launch diff_drive_robot semantic_nav.launch.py
 ```
+**What to expect:** 
+- The Gazebo window will open showing a 3D office.
+- RViz2 will open showing the robot and a grid.
+- **Wait about 15 seconds!** Do not type anything yet. You must wait for SLAM Toolbox to generate the initial map and Nav2 to activate.
 
-### Mapping Branch
-
-To use the mapping features, clone the `mapping` branch directly:
+### Terminal 2: Command the Robot
+Once RViz is fully loaded and you see the laser scan dots around the robot, open a **brand new terminal window** to give the robot commands.
 
 ```bash
-mkdir -p ros2_ws/src
-cd ros2_ws/src
-git clone -b mapping https://github.com/adoodevv/diff_drive_robot.git
-cd ..
-colcon build --packages-select diff_drive_robot --symlink-install
+# 1. Open a new terminal
+# 2. Source the installations again (you must do this for EVERY new terminal!)
+source /opt/ros/jazzy/setup.bash
+source ~/ak_ws/install/setup.bash
+
+# 3. Run the User Interface (UI) node
+ros2 run diff_drive_robot ui_node.py
 ```
 
-## Usage
+**How to use it:**
+When you see `Command>`, simply type the name of the object you want the robot to find and press **Enter**.
+- **Example:** Type `chair` and press Enter.
 
-### Main Branch - Basic Robot Simulation
+*(Note: If you see warning messages popping up in the terminal, don't worry! Your typing is still being recorded in the background. Just type the word and hit enter).*
 
-After sourcing ROS and this package, launch the 2-wheeled differential drive robot simulation:
-
+#### The Alternative "Clean" Method
+If the terminal warnings make it too hard to type in Terminal 2, you can close it, open a clean terminal, source your workspace, and send the command directly over a ROS topic:
 ```bash
-source install/setup.bash
-ros2 launch diff_drive_robot robot.launch.py 
+ros2 topic pub /ui_command std_msgs/String "{data: 'chair'}" --once
 ```
 
-#### Controlling the robot
+---
 
-Currently, only keyboard control works. Run this in another terminal:
+## 🧠 5. What is the Robot Doing?
 
-```bash
-ros2 run teleop_twist_keyboard teleop_twist_keyboard 
-```
-
-![Gazebo Simulation](assets/gazebo_mapping.png)
-
-### Mapping Branch - Mapping and Localization
-
-The `mapping` branch extends the base functionality with:
-
-- **SLAM Toolbox**: For mapping the environment
-- **Extended Kalman Filter (EKF)**: For sensor fusion and improved odometry estimation
-- **Enhanced RViz configuration**: Pre-configured for mapping visualization
-
-#### New Configuration Files
-
-The mapping branch includes additional configuration files:
-
-- `config/slam_toolbox_mapping.yaml`: Configuration for SLAM Toolbox mapping mode
-- `config/ekf.yaml`: Extended Kalman Filter parameters for sensor fusion (odometry and IMU)
-
-#### Launching the Mapping System
-
-The mapping system requires launching two separate terminals:
-
-**Terminal 1 - Robot Simulation:**
-```bash
-source install/setup.bash
-ros2 launch diff_drive_robot robot.launch.py
-```
-
-This launches:
-- Gazebo simulation
-- Robot State Publisher
-- Gazebo-ROS bridge
-- Extended Kalman Filter node
-- Robot spawner
-
-**Terminal 2 - Mapping:**
-```bash
-source install/setup.bash
-ros2 launch diff_drive_robot mapping.launch.py
-```
-
-This launches:
-- SLAM Toolbox (online async mapping mode)
-- RViz with mapping configuration
-
-#### Controlling the robot during mapping
-
-In a third terminal, run the keyboard teleop:
-
-```bash
-ros2 run teleop_twist_keyboard teleop_twist_keyboard
-```
-
-![RViz Mapping](assets/rviz_mapping.png)
-
-#### Saving the Map
-
-Once you've mapped your environment, you can save it using the SLAM Toolbox plugin in RViz or via command line:
-
-```bash
-ros2 run nav2_map_server map_saver_cli -f ~/my_map
-```
-
-## TODO
-
-Package is still being worked on, though the core functionality is pretty much done, I will be adding some more sensors and functionalities soon.
+1. **Wandering**: When you command it to find an object, the robot picks a random point in the room and navigates there.
+2. **Scanning**: Upon reaching the point, it spins 360 degrees to scan the room with its YOLO-powered RGBD camera.
+3. **Remembering**: If it sees the object (like a chair), it mathematically computes the object's GPS coordinates on the map and saves it to its "Semantic Memory".
+4. **Navigating**: It immediately cancels the search, retrieves the exact coordinates from memory, and drives directly to the object!

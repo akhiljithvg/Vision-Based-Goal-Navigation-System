@@ -1,0 +1,32 @@
+# ROS 2 build directories
+build/
+install/
+log/
+
+# Log files
+*.log
+launch_log.txt
+
+# Python cache and temporary files
+__pycache__/
+*.pyc
+*.pyo
+
+# Scratch scripts
+check_spawn.py
+clean_world.py
+fix_colors.py
+fix_models.py
+fix_world.py
+fix_xml.py
+fix_xml_small.py
+
+# TF view_frames output
+*.gv
+*.pdf
+
+# Model weights and datasets
+*.pt
+
+# Large zip archives
+*.zip
