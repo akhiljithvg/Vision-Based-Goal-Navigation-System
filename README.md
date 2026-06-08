@@ -1,4 +1,6 @@
 # Vision-Based Goal Navigation System
+![Gazebo](./gazebo1.png)
+![Object detection and navigation](./rviz1.png)
 
 Welcome! This is a complete ROS 2 (Jazzy) autonomous navigation project featuring a differential drive robot simulated in Gazebo. The robot uses **Nav2**, **SLAM Toolbox**, and a **YOLOv8** perception pipeline to explore a room, map objects (like "chair", "table"), and autonomously navigate to them.
 
